@@ -1,48 +1,69 @@
-import { Schema, model } from 'mongoose';
-import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { Schema, model } from "mongoose";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const BookingSchema = new Schema(
   {
     fullName: {
       type: String,
-      required: true
+      required: true,
     },
     phoneNumber: {
       type: String,
-      required: true
+      required: true,
+    },
+    applicationNo: {
+      type: String,
+      unique: true,
+      required: true,
     },
     email: {
       type: String,
-      required: true
+      required: true,
     },
     address: {
       type: String,
-      required: true
+      required: true,
     },
     serviceType: {
       type: String,
-      required: true
+      required: true,
     },
     preferredDate: {
       type: Date,
-      required: true
+      required: true,
     },
     additionalInfo: {
-      type: String
+      type: String,
+    },
+    technicianId: {
+      type: Schema.Types.ObjectId,
+      ref: "technicians",
+      path: "_id",
+    },
+    // technicianId: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "technicians", // ✅ Corrected reference
+    //   },
+
+    assignDate: {
+      type: String,
+    },
+    aasigntime: {
+      type: String,
     },
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
-      default: 'Pending'
-    }
+      enum: ["Pending", "Confirmed", "Completed", "Cancelled"],
+      default: "Pending",
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
 BookingSchema.plugin(aggregatePaginate);
 
-const Booking = model('bookings', BookingSchema);
+const Booking = model("tbl_bookings", BookingSchema);
 
 export default Booking;

@@ -34,7 +34,9 @@
     "nodemon": "^3.1.0",
     "otp-generator": "^4.0.1",
     "razorpay": "^2.9.4",
-    "unirest": "^0.6.0"
+    "unirest": "^0.6.0",
+    "uuid": "^11.1.0",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
