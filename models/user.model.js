@@ -5,11 +5,7 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 const UserSchema = new Schema(
   {
     fullName: {
-      type: String,
-      require: true
-    },
-    gymName: {
-      type: String,
+      type: String
     },
     roleId: {
       type: Schema.Types.ObjectId,
@@ -18,15 +14,13 @@ const UserSchema = new Schema(
       required: true
     },
     mobile: {
-      type: String,
-      require: true
+      type: String
     },
     email: {
       type: String
     },
     password: {
-      type: String,
-      require: true
+      type: String
     },
     address: {
       type: String
