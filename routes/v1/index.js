@@ -5,7 +5,7 @@ import {
 import authRoutes from './AuthRoutes.js';
 import usersRoutes from './UsersRoutes.js';
 import roleRoutes from './RoleRoutes.js';
-import otp from './Otp/OtpRoute.js';
+import otp from './OtpRoute.js';
 
 const router = rootRouter.Router({ mergeParams: true });
 
