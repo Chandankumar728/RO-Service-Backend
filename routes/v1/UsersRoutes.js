@@ -7,7 +7,9 @@ import {
   GetUserWithId,
   UpdateUserAdmin,
   UpdatePermission,
-  CreateUser
+  CreateUser,
+  CreateUserWithImage,
+  UpdateUserStatus
 } from '../../controller/UserController.js';
 
 const router = useRouter.Router();
@@ -20,5 +22,7 @@ router.get('/edit/:id', GetUserWithId); // endpoint: /user/edit/:id
 router.put('/update-user/:id', UpdateUserAdmin); // endpoint: /user/update-user/:id {fullName, mobile, email, status, role}
 router.put('/update-permission/:id', UpdatePermission); // endpoint: /user/update-permission/:id {permission}
 router.post('/create-user', CreateUser); // endpoint: /user/create-user {fullName, mobile, email, password, role}
+router.post('/create-user-with-img', CreateUserWithImage); // endpoint: /user/create-user {fullName, mobile, email, password, role}
+router.put('/update-user-status/:id', UpdateUserStatus); // endpoint: /user/create-user {fullName, mobile, email, password, role}
 
 export default router;

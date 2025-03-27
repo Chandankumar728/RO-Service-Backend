@@ -5,6 +5,7 @@ import {
 import authRoutes from './AuthRoutes.js';
 import usersRoutes from './UsersRoutes.js';
 import roleRoutes from './RoleRoutes.js';
+import serviceRoutes from './ServiceRoutes.js';
 import bookingRoutes from './BookingRoutes.js';
 import otp from './OtpRoute.js';
 import technicianmaster from './TechnicianMasterRoutes.js';
@@ -20,6 +21,7 @@ router.use(authMiddleWare); // protect all routes
 // router.use(authCookieMiddleware); // protect all routes
 router.use('/user', usersRoutes);
 router.use('/role', roleRoutes);
+router.use('/service', serviceRoutes);
 router.use('/booking', bookingRoutes);
 router.use('/technician', technicianmaster);
 

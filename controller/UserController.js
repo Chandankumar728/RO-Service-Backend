@@ -6,13 +6,13 @@ import { hash } from '../utils/index.js';
 // ════════════════════════════║  API TO Get All User ║═════════════════════════════════//
 
 export async function CreateUserWithImage(req, res) {
-  const upload = uploadFile('./uploads/profile');
+  const upload = await uploadFile('./uploads/profile');
   try {
-    upload.single('imageUrl')(req, res, async (err) => {
+    await upload.single('imageUrl')(req, res, async (err) => {
       if (err) {
         res.status(400).json(err.message);
       } else {
-        const { fullName, email, mobile, roleId, ulbId, address, password } =
+        const { fullName, email, mobile, roleId, address, password } =
           req.body;
         console.log(req.file?.filename);
         const checkEmail = await Users.findOne({ email });
@@ -29,7 +29,6 @@ export async function CreateUserWithImage(req, res) {
           mobile,
           password: hashPassword,
           roleId,
-          ulbId,
           imageUrl: req.file?.filename,
           address,
           fullImgUrl: `${process.env.BACKEND_URL}/${req?.file?.filename}`
