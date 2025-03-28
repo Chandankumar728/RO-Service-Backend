@@ -1,28 +1,27 @@
-import mongoose from 'mongoose';
-import Users from '../models/user.model.js';
-import { uploadFile } from '../middleware/_multer.js';
-import { hash } from '../utils/index.js';
+import mongoose from "mongoose";
+import Users from "../models/user.model.js";
+import { uploadFile } from "../middleware/_multer.js";
+import { hash } from "../utils/index.js";
 
 // ════════════════════════════║  API TO Get All User ║═════════════════════════════════//
 
 export async function CreateUserWithImage(req, res) {
-  const upload = await uploadFile('./uploads/profile');
+  const upload = await uploadFile("./uploads/profile");
   try {
-    await upload.single('imageUrl')(req, res, async (err) => {
+    await upload.single("imageUrl")(req, res, async (err) => {
       if (err) {
         res.status(400).json(err.message);
       } else {
-        const { fullName, email, mobile, roleId, address, password } =
-          req.body;
+        const { fullName, email, mobile, roleId, address, password } = req.body;
         console.log(req.file?.filename);
         const checkEmail = await Users.findOne({ email });
         if (checkEmail) {
           return res.status(200).json({
             success: false,
-            message: 'Email already exists'
+            message: "Email already exists",
           });
         }
-        const hashPassword = await hash(String(password ?? '12345678'));
+        const hashPassword = await hash(String(password ?? "12345678"));
         const createUser = await Users.create({
           fullName,
           email,
@@ -31,12 +30,12 @@ export async function CreateUserWithImage(req, res) {
           roleId,
           imageUrl: req.file?.filename,
           address,
-          fullImgUrl: `${process.env.BACKEND_URL}/${req?.file?.filename}`
+          fullImgUrl: `${process.env.BACKEND_URL}/${req?.file?.filename}`,
         });
         return res.status(200).json({
           success: true,
           userDetails: createUser,
-          message: 'Successfully created'
+          message: "Successfully created",
         });
       }
     });
@@ -53,61 +52,61 @@ export async function GetAllUsers(req, res) {
     let query = [
       {
         $sort: {
-          createdAt: -1
-        }
+          createdAt: -1,
+        },
       },
       {
         $project: {
           __v: 0,
-          password: 0
-        }
-      }
+          password: 0,
+        },
+      },
     ];
 
     if (q) {
       query.push({
         $match: {
           $or: [
-            { email: { $regex: new RegExp(q, 'i') } },
-            { fullName: { $regex: new RegExp(q, 'i') } },
-            { 'role.roleName': { $regex: new RegExp(q, 'i') } },
-            { 'ulb.ulbName': { $regex: new RegExp(q, 'i') } }
-          ]
-        }
+            { email: { $regex: new RegExp(q, "i") } },
+            { fullName: { $regex: new RegExp(q, "i") } },
+            { "role.roleName": { $regex: new RegExp(q, "i") } },
+            { "ulb.ulbName": { $regex: new RegExp(q, "i") } },
+          ],
+        },
       });
     }
 
     const aggregate = Users.aggregate([
       {
         $lookup: {
-          from: 'tbl_ulbs_mstrs',
-          localField: 'ulbId',
-          foreignField: '_id',
-          as: 'ulb'
-        }
+          from: "tbl_ulbs_mstrs",
+          localField: "ulbId",
+          foreignField: "_id",
+          as: "ulb",
+        },
       },
       {
         $unwind: {
-          path: '$ulb',
-          preserveNullAndEmptyArrays: true
-        }
+          path: "$ulb",
+          preserveNullAndEmptyArrays: true,
+        },
       },
 
       {
         $lookup: {
-          from: 'tbl_roles_mstrs',
-          localField: 'roleId',
-          foreignField: '_id',
-          as: 'role'
-        }
+          from: "tbl_roles_mstrs",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "role",
+        },
       },
 
       ...query,
       {
         $unwind: {
-          path: '$role',
-          preserveNullAndEmptyArrays: true
-        }
+          path: "$role",
+          preserveNullAndEmptyArrays: true,
+        },
       },
 
       // role in userDetails?
@@ -128,30 +127,30 @@ export async function GetAllUsers(req, res) {
           roleId: 1,
           createdAt: 1,
           updatedAt: 1,
-          role: '$role.roleName',
-          ulb: '$ulb.ulbName'
-        }
+          role: "$role.roleName",
+          ulb: "$ulb.ulbName",
+        },
       },
 
       {
         $lookup: {
-          from: 'tbl_permissions',
-          localField: 'roleId',
-          foreignField: 'roleId',
-          as: 'permission'
-        }
+          from: "tbl_permissions",
+          localField: "roleId",
+          foreignField: "roleId",
+          as: "permission",
+        },
       },
 
       {
         $project: {
-          'permission._id': 0,
-          'permission.roleId': 0,
-          'permission.createdAt': 0,
-          'permission.updatedAt': 0,
-          'permission.status': 0,
-          'permission.__v': 0
-        }
-      }
+          "permission._id": 0,
+          "permission.roleId": 0,
+          "permission.createdAt": 0,
+          "permission.updatedAt": 0,
+          "permission.status": 0,
+          "permission.__v": 0,
+        },
+      },
       // user id and permission status=1
     ]);
 
@@ -160,19 +159,19 @@ export async function GetAllUsers(req, res) {
     if (!getAllUsers) {
       return res.status(400).json({
         success: true,
-        message: 'No record found!'
+        message: "No record found!",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Fetched successfully.',
-      data: getAllUsers
+      message: "Fetched successfully.",
+      data: getAllUsers,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error
+      message: error,
     });
   }
 }
@@ -187,18 +186,18 @@ export async function GetUserWithId(req, res) {
     if (!userDetails) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      userDetails
+      userDetails,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: "Internal server error",
     });
   }
 }
@@ -211,23 +210,23 @@ export async function GetUser(req, res) {
     const userDetails = await Users.aggregate([
       {
         $match: {
-          _id: new mongoose.Types.ObjectId(req.user?._id)
-        }
+          _id: new mongoose.Types.ObjectId(req.user?._id),
+        },
       },
 
       {
         $lookup: {
-          from: 'tbl_roles_mstrs',
-          localField: 'roleId',
-          foreignField: '_id',
-          as: 'role'
-        }
+          from: "tbl_roles_mstrs",
+          localField: "roleId",
+          foreignField: "_id",
+          as: "role",
+        },
       },
       {
         $unwind: {
-          path: '$role',
-          preserveNullAndEmptyArrays: true
-        }
+          path: "$role",
+          preserveNullAndEmptyArrays: true,
+        },
       },
       // role in userDetails?
       {
@@ -241,77 +240,77 @@ export async function GetUser(req, res) {
           country: 1,
           states: 1,
           city: 1,
-          gymName:1,
+          gymName: 1,
           imageUrl: 1,
           status: 1,
           roleId: 1,
           googleId: 1,
           createdAt: 1,
           updatedAt: 1,
-          userUlbId: '$ulbId',
+          userUlbId: "$ulbId",
 
-          role: '$role.roleName'
-        }
+          role: "$role.roleName",
+        },
       },
 
       {
         $lookup: {
-          from: 'tbl_permissions',
-          localField: 'roleId',
-          foreignField: 'roleId',
-          as: 'permission',
+          from: "tbl_permissions",
+          localField: "roleId",
+          foreignField: "roleId",
+          as: "permission",
           pipeline: [
             {
               $match: {
-                status: 1
-              }
+                status: 1,
+              },
             },
             {
               $lookup: {
-                from: 'tbl_menu_mstrs',
-                localField: 'menuId',
-                foreignField: '_id',
-                as: 'menu'
-              }
+                from: "tbl_menu_mstrs",
+                localField: "menuId",
+                foreignField: "_id",
+                as: "menu",
+              },
             },
             {
               $unwind: {
-                path: '$menu',
-                preserveNullAndEmptyArrays: true
-              }
+                path: "$menu",
+                preserveNullAndEmptyArrays: true,
+              },
             },
             // only menu name pathname
             {
               $project: {
-                path: '$menu.pathName',
-                menuName: '$menu.menuName',
+                path: "$menu.pathName",
+                menuName: "$menu.menuName",
                 create: 1,
                 read: 1,
                 update: 1,
-                delete: 1
-              }
-            }
-          ]
-        }
+                delete: 1,
+              },
+            },
+          ],
+        },
       },
 
       {
         $project: {
-          'permission._id': 0,
-          'permission.roleId': 0,
-          'permission.createdAt': 0,
-          'permission.updatedAt': 0,
-          'permission.status': 0,
-          'permission.__v': 0,
-          'permission.menuId': 0
-        }
-      }
+          "permission._id": 0,
+          "permission.roleId": 0,
+          "permission.createdAt": 0,
+          "permission.updatedAt": 0,
+          "permission.status": 0,
+          "permission.__v": 0,
+          "permission.menuId": 0,
+        },
+      },
     ]);
 
     if (!userDetails) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -319,13 +318,13 @@ export async function GetUser(req, res) {
       success: true,
       userDetails: {
         ...userDetails[0],
-        imgFullPath: `${protocol}://${host}/${userDetails[0].imageUrl}`
-      }
+        imgFullPath: `${protocol}://${host}/${userDetails[0].imageUrl}`,
+      },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: "Internal server error",
     });
   }
 }
@@ -333,9 +332,9 @@ export async function GetUser(req, res) {
 // ════════════════════════════║  API TO Upload User Profile Image  ║═════════════════════════════════//
 
 export async function UploadProfileImage(req, res) {
-  const upload = await uploadFile('./uploads/profile');
+  const upload = await uploadFile("./uploads/profile");
   try {
-    await upload.single('imageUrl')(req, res, async (err) => {
+    await upload.single("imageUrl")(req, res, async (err) => {
       if (err) {
         res.status(400).json(err.message);
       } else {
@@ -343,16 +342,16 @@ export async function UploadProfileImage(req, res) {
         const updateUser = await Users.findOneAndUpdate(
           { _id: req.user?._id },
           {
-            imageUrl: req.file?.filename
+            imageUrl: req.file?.filename,
           },
           {
-            new: true
+            new: true,
           }
         );
         res.status(200).json({
           success: true,
           id: updateUser?._id,
-          message: 'Successfully uploaded'
+          message: "Successfully uploaded",
         });
       }
     });
@@ -364,29 +363,27 @@ export async function UploadProfileImage(req, res) {
 // ════════════════════════════║  API TO Update User Data  ║═════════════════════════════════//
 
 export async function UpdateUser(req, res) {
-  
   try {
-        const { fullName, mobile, roleId, address, gymName, zipCode} = req.body;
-        const updateUser = await Users.findOneAndUpdate(
-          { _id: req.user?._id },
-          {
-            fullName,
-            mobile,
-            roleId,
-            address,
-            gymName,
-            zipCode
-          },
-          {
-            new: true
-          }
-        );
-        return res.status(200).json({
-          success: true,
-          userDetails: updateUser,
-          message: 'Successfully updated'
-        });
-     
+    const { fullName, mobile, roleId, address, gymName, zipCode } = req.body;
+    const updateUser = await Users.findOneAndUpdate(
+      { _id: req.user?._id },
+      {
+        fullName,
+        mobile,
+        roleId,
+        address,
+        gymName,
+        zipCode,
+      },
+      {
+        new: true,
+      }
+    );
+    return res.status(200).json({
+      success: true,
+      userDetails: updateUser,
+      message: "Successfully updated",
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -402,16 +399,16 @@ export async function UpdateUserAdmin(req, res) {
         mobile,
         email,
         status,
-        roleId
+        roleId,
       },
       {
-        new: true
+        new: true,
       }
     );
     return res.status(200).json({
       success: true,
       userDetails: updateUser,
-      message: 'Successfully updated'
+      message: "Successfully updated",
     });
   } catch (err) {
     return res.status(400).json(err);
@@ -425,14 +422,14 @@ export async function UpdatePermission(req, res) {
   const { permission } = req.body;
   try {
     if (permission?.length === 0)
-      return res.status(400).json({ message: 'Please select permission' });
+      return res.status(400).json({ message: "Please select permission" });
     const getUser = await Users.findOne({ _id: id });
 
     const isPermission = getUser?.permission?.map((item) => {
       return;
     });
 
-    return res.status(200).json({ message: 'Successfully updated' });
+    return res.status(200).json({ message: "Successfully updated" });
   } catch (err) {
     res.status(400).json(err);
   }
@@ -443,28 +440,28 @@ export async function UpdatePermission(req, res) {
 export async function CreateUser(req, res) {
   const { fullName, email, mobile, roleId } = req.body;
   const img = req.files;
-  console.log('Creating user', img);
+  console.log("Creating user", img);
 
   try {
     const checkEmail = await Users.findOne({ email });
     if (checkEmail) {
       return res.status(200).json({
         success: false,
-        message: 'Email already exists'
+        message: "Email already exists",
       });
     }
-    const hashPassword = await hash(String('12345678'));
+    const hashPassword = await hash(String("12345678"));
     const createUser = await Users.create({
       fullName,
       email,
       mobile,
       password: hashPassword,
-      roleId
+      roleId,
     });
     return res.status(200).json({
       success: true,
       userDetails: createUser,
-      message: 'Successfully created'
+      message: "Successfully created",
     });
   } catch (err) {
     res.status(400).json(err);
@@ -481,7 +478,7 @@ export async function UpdateUserStatus(req, res) {
       { _id: id },
       {
         // if status is 1, then change to 0, and vice
-        status: status?.status == 1 ? 0 : 1
+        status: status?.status == 1 ? 0 : 1,
       },
       { new: true }
     );
@@ -489,19 +486,64 @@ export async function UpdateUserStatus(req, res) {
     if (!UserDetails) {
       return res.status(200).json({
         success: false,
-        message: 'Users not found'
+        message: "Users not found",
       });
     }
     return res.status(200).json({
       success: true,
       message:
-        UserDetails?.status == 1 ? 'User is Activated' : 'User is Deactivated',
-      data: UserDetails
+        UserDetails?.status == 1 ? "User is Activated" : "User is Deactivated",
+      data: UserDetails,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error
+      message: error,
     });
   }
+}
+
+// user update by id with images
+
+export async function updateUserwithImage(req, res) {
+  const upload = await uploadFile("./uploads/profile");
+
+await  upload.single("imageUrl")(req, res, async (err) => {
+    if (err) {
+      res.status(400).json(err.message);
+    } else {
+      const { id } = req.params;
+
+      const { fullName, email, mobile, password, roleId, imageUrl, address } =
+        req.body;
+
+      try {
+        const user = await Users.findById(id);
+
+        if (req.file) {
+          user.imageUrl = req.file.filename;
+          user.fullImgUrl = `${process.env.BACKEND_URL}/${req?.file?.filename}`;
+        }
+        user.fullName = fullName;
+        user.email = email;
+        user.mobile = mobile;
+        user.roleId = roleId;
+        user.address = address;
+
+        const updateUser = await user.save();
+
+        res.json({
+          data: updateUser,
+          success: true,
+          message: "User updated successfully.",
+        });
+      } catch (e) {
+        return res.status(500).json({
+          message: e.message || "Some error occurred while updating user.",
+
+          success: false,
+        });
+      }
+    }
+  });
 }

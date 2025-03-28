@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
-import User from "../models/user.model.js";
+import moment from "moment";
+
 // import getAllBookingRoService from 'mongoose-aggregate-paginate-v2';
 
 // ════════════════════════════║  API TO BOOKING RO SERVICE  ║═════════════════════════════════//
@@ -78,7 +79,22 @@ export async function getAllBookingRoService(req, res) {
 
     // Using aggregate with pagination
     const bookings = await Booking.aggregatePaginate(
-      Booking.aggregate([]),
+      Booking.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "technicianId",
+            foreignField: "_id",
+            as: "technician",
+          },
+        },
+        {
+          $unwind: {
+            path: "$technician",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]),
       options
     );
 
@@ -102,31 +118,31 @@ export async function getAllBookingRoService(req, res) {
 export async function findBookingRoService(req, res) {
   try {
     const { id } = req.params;
-
-    // Validate ObjectId format (Optional)
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID format",
-      });
-    }
-
-    // Find booking and populate technician details
-    const booking = await Booking.findById(id).populate(
-      "technicianId",
-      "fullName phoneNumber expertise"
-    );
-
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
+    const bookingData = await Booking.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "technicianId",
+          foreignField: "_id",
+          as: "technician",
+        },
+      },
+      {
+        $unwind: {
+          path: "$technician",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
 
     return res.status(200).json({
       success: true,
-      data: booking,
+      data: bookingData[0],
     });
   } catch (err) {
     console.error(err);
@@ -143,34 +159,34 @@ export async function findBookingRoService(req, res) {
 export async function updateBookingRoService(req, res) {
   try {
     const { id } = req.params;
-    const { technicianId, assignDate, assignTime, ...otherUpdates } = req.body;
+    const { technicianId, aasignDate, assignTime, ...otherUpdates } = req.body;
 
     // if same id not assign to other technician
-    if (technicianId) {
-      const booking = await Booking.findById(id);
-      if (booking.technicianId) {
-        return res.status(200).json({
-          success: false,
-          message: "This booking is already assigned to a technician",
-        });
-      }
-    }
-    
-    // Ensure there's some data to update
-    if (Object.keys(req.body).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No update data provided",
-      });
-    }
+    // if (technicianId) {
+    //   const booking = await Booking.findById(id);
+    //   if (booking.technicianId) {
+    //     return res.status(200).json({
+    //       success: false,
+    //       message: "This booking is already assigned to a technician",
+    //     });
+    //   }
+    // }
+
+    // // Ensure there's some data to update
+    // if (Object.keys(req.body).length === 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "No update data provided",
+    //   });
+    // }
 
     // Create an update object
     const updateData = { ...otherUpdates };
 
     // If technician details are provided, include them in update
-    if (technicianId) updateData.technicianId = technicianId;
-    if (assignDate) updateData.assignDate = assignDate;
-    if (assignTime) updateData.assignTime = assignTime;
+    updateData.technicianId = technicianId;
+    updateData.assignDate = assignDate ?? moment().format("YYYY-MM-DD");
+    updateData.aasigntime = assignTime ?? moment().format("HH:mm:ss");
 
     // Find and update booking
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
