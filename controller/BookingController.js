@@ -16,6 +16,7 @@ export async function bookingRoService(req, res) {
       serviceType,
       preferredDate,
       additionalInfo,
+      createdBy="Citizen"
     } = req.body;
 
     // Basic validation
@@ -49,6 +50,7 @@ export async function bookingRoService(req, res) {
       preferredDate,
       additionalInfo,
       applicationNo,
+      createdBy,
     });
 
     return res.status(201).json({
@@ -71,15 +73,43 @@ export async function bookingRoService(req, res) {
 
 export async function getAllBookingRoService(req, res) {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10 ,q} = req.query;
     const options = {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
     };
 
+    let query = [
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $project: {
+          __v: 0,
+        
+        },
+      },
+    ];
+
+    if (q) {
+      query.push({
+        $match: {
+          $or: [
+            { email: { $regex: new RegExp(q, "i") } },
+            { fullName: { $regex: new RegExp(q, "i") } },
+            { phoneNumber: { $regex: new RegExp(q, "i") } },
+            
+          ],
+        },
+      });
+    }
+
     // Using aggregate with pagination
     const bookings = await Booking.aggregatePaginate(
       Booking.aggregate([
+        ...query,
         {
           $lookup: {
             from: "users",
@@ -133,8 +163,23 @@ export async function findBookingRoService(req, res) {
         },
       },
       {
+        $lookup: {
+          from: "tbl_service_mstrs",
+          localField: "serviceType",
+          foreignField: "_id",
+          as: "service",
+        },
+      },
+      {
         $unwind: {
           path: "$technician",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      
+      {
+        $unwind: {
+          path: "$service",
           preserveNullAndEmptyArrays: true,
         },
       },

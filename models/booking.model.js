@@ -25,8 +25,9 @@ const BookingSchema = new Schema(
       required: true,
     },
     serviceType: {
-      type: String,
-      required: true,
+      type: Schema.Types.ObjectId,
+      ref: "tbl_service_mstrs",
+      path: "_id",
     },
     preferredDate: {
       type: Date,
@@ -40,10 +41,10 @@ const BookingSchema = new Schema(
       ref: "technicians",
       path: "_id",
     },
-    // technicianId: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "technicians", // ✅ Corrected reference
-    //   },
+    createdBy: {
+        type: String,
+        default: "Citizen"
+      },
 
     assignDate: {
       type: String,
