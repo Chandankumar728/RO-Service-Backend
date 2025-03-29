@@ -1,6 +1,7 @@
+import moment from "moment";
 import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
-import moment from "moment";
+import ItemModel from "../models/items.model.js";
 
 // import getAllBookingRoService from 'mongoose-aggregate-paginate-v2';
 
@@ -390,6 +391,60 @@ export async function getBookingListByTechnicianId(req, res) {
       success: true,
       message: "Fetched successfully.",
       data: getAllBookings,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error,
+    });
+  }
+}
+
+
+// save ItemModel in booking model
+export async function PayBookingItem(req, res) {
+  try {
+    const { bookingId, items } = req.body;
+    const booking = await Booking.findOne({
+      _id: new mongoose.Types.ObjectId(bookingId),
+      status: "Pending",
+    });
+    if (!booking) {
+      return res.status(200).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // items is an array of objects and save ItemModel
+
+    const savedItems = await ItemModel.insertMany(items);
+
+    if (!savedItems) {
+      return res.status(200).json({
+        success: false,
+        message: "Item model not saved",
+      });
+    }
+
+    const updatedBooking = await Booking.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(bookingId) },
+      { $set: { 
+        paymentStatus: "Paid",
+        status: "Completed",
+       } },
+      { new: true }
+    );
+
+    if (!updatedBooking) {
+      return res.status(200).json({
+        success: false,
+        message: "Booking not updated",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Item model saved successfully",
     });
   } catch (error) {
     return res.status(500).json({

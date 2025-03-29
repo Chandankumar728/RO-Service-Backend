@@ -52,6 +52,16 @@ const BookingSchema = new Schema(
     aasigntime: {
       type: String,
     },
+    paymentStatus: {
+      type: String,
+      enum: ["Paid", "Unpaid"],
+      default: "Unpaid",
+    },
+    paymentMode: {
+      type: String,
+      enum: ["Online", "Offline"],
+      default: "Offline",
+    },
     status: {
       type: String,
       enum: ["Pending", "Confirmed", "Completed", "Cancelled"],
